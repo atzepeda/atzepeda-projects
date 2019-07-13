@@ -14,7 +14,7 @@ public class MiddleManService {
     private static final Logger LOGGER = LoggerFactory.getLogger(MiddleManService.class);
 
     interface RoomService {
-        @RequestLine("GET /start")
+        @RequestLine("GET /rooms")
         String getRooms();
 
         @RequestLine("POST /add/{room}")
@@ -47,11 +47,11 @@ public class MiddleManService {
     public MiddleManService() {
         roomService = Feign.builder()
                 .decoder(new GsonDecoder())
-                .target(RoomService.class, "http://127.0.0.1:7000");
+                .target(RoomService.class, "http://127.0.0.1:8000");
 
         meetingService = Feign.builder()
                 .decoder(new GsonDecoder())
-                .target(MeetingService.class, "http://127.0.0.1:8000");
+                .target(MeetingService.class, "http://127.0.0.1:7000");
 
         // TODO: later we need to make the URL for both of these to be dynamic such that
         // when we run locally, it will be set to 127.0.0.1:XXX and when things are deployed
