@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class MiddleManApp {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MiddleManApp.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(MiddleManApp.class, args);
+    }
 
 }
