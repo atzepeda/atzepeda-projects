@@ -6,7 +6,7 @@ import feign.Param;
 import feign.RequestLine;
 import feign.gson.GsonDecoder;
 
-public class MyApp {
+public class MiddleManService {
 
     public static final String HTTPS_API_GITHUB_COM = "https://api.github.com";
 
@@ -25,18 +25,32 @@ public class MyApp {
     }
 
     interface MeetingService {
+        @RequestLine("GET /start")
+        String getMeetings();
+
+        @RequestLine("POST /add/{meeting}")
+        String addMeeting(@Param("meeting") String meeting);
+
+        @RequestLine("PUT /update/{meetingID}")
+        String updateMeeting(@Param("meetingID") String meetingID);
+
+        @RequestLine("DELETE /delete/{meetingID}")
+        String deleteMeeting(@Param("meetingID") String meetingID);
     }
 
+    private final RoomService roomService;
+    private final MeetingService meetingService;
 
-    static void main(String[] args) {
-        RoomService roomService = Feign.builder()
+    public MiddleManService() {
+        roomService = Feign.builder()
                 .decoder(new GsonDecoder())
                 .target(RoomService.class, HTTPS_API_GITHUB_COM);
 
-        MeetingService meetingService = Feign.builder()
+        meetingService = Feign.builder()
                 .decoder(new GsonDecoder())
                 .target(MeetingService.class, HTTPS_API_GITHUB_COM);
 
         System.out.println(roomService.getRooms());
+        System.out.println(meetingService.getMeetings());
     }
 }
