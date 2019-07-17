@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,4 +30,10 @@ public class MiddleManController {
         return new ResponseEntity<>(something, HttpStatus.OK);
     }
 
+    @PostMapping("/addRoom/{roomID}")
+    public ResponseEntity<String> addRoom(@PathVariable String roomID) {
+        LOGGER.debug("called add Room");
+        middleManService.addRoom(roomID);
+        return new ResponseEntity<>("it worked", HttpStatus.OK);
+    }
 }
