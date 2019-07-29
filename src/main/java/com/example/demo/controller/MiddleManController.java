@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.service.MiddleManService;
+import com.example.demo.service.Room;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +28,40 @@ public class MiddleManController {
         return new ResponseEntity<>(something, HttpStatus.OK);
     }
 
-    @PostMapping("/addRoom/{roomID}")
-    public ResponseEntity<String> addRoom(@PathVariable String roomID) {
-        LOGGER.debug("called add Room");
-        middleManService.addRoom(roomID);
-        return new ResponseEntity<>("it worked", HttpStatus.OK);
+    @PostMapping("/rooms/{roomId}")
+    public ResponseEntity<Room> addRoom(@PathVariable String roomId, @RequestBody Room room) {
+        LOGGER.debug("called addRoom, roomId: {}, room: {}", roomId, room);
+
+        if (room == null) {
+            throw new IllegalStateException("room not provided in request body");
+        }
+
+        room.setRoomId(roomId);
+
+        Room createdRoom = middleManService.addRoom(room);
+        return new ResponseEntity<>(createdRoom, HttpStatus.OK);
+    }
+
+    // Note: I changed the update here to be /rooms/{roomId} -- the "shape" of how you want to expose the middleman
+    // operations "should" follow a pattern of:
+
+    // create = POST /rooms (note, no "id" in the url).. (request body == Room object)
+    // read = GET /rooms/{roomId}
+    // update = PUT /rooms/{roomId} (request body == Room object)
+    // delete = DELETE /rooms/{roomId}
+
+    @PutMapping("/rooms/{roomId}")
+    public ResponseEntity<Room> updateRoom(@PathVariable String roomId, @RequestBody Room room) {
+        LOGGER.debug("called addRoom, roomId: {}, room: {}", roomId, room);
+
+        if (room == null) {
+            throw new IllegalStateException("room not provided in request body");
+        }
+
+        room.setRoomId(roomId);
+
+        Room createdRoom = middleManService.updateRoom(room);
+        return new ResponseEntity<>(createdRoom, HttpStatus.OK);
     }
 
     @PutMapping("/updateMeetingDate/{name}/{date}")

@@ -20,14 +20,17 @@ public class MiddleManService {
         @RequestLine("GET /rooms")
         List<Room> getRooms();
 
-        @RequestLine("POST /rooms/{roomID}")
-        String addRoom(@Param("roomID") String roomID);
+        @RequestLine("GET /rooms/{roomId}")
+        Room getRoom(@Param("roomId") String roomId);
 
-        @RequestLine("PUT /update/{room}")
-        String updateRoom(@Param("room") String room);
+        @RequestLine("POST /rooms/{roomId}")
+        Room addRoom(@Param("roomId") String roomId, Room room);
+
+        @RequestLine("PUT /update/{roomId}")
+        Room updateRoom(@Param("roomId") String roomId, Room room);
 
         @RequestLine("DELETE /delete/{room}")
-        String deleteRoom(@Param("room") String room);
+        Room deleteRoom(@Param("roomId") String roomId);
     }
 
     interface MeetingService {
@@ -93,12 +96,48 @@ public class MiddleManService {
         return String.format("rooms: %s, meetings: %s", rooms, meetings);
     }
 
-    public void addRoom(String name) {
+    public Room addRoom(Room room) {
         try {
-            roomService.addRoom(name);
-            LOGGER.info("added room: " + name);
+            LOGGER.info("creating room: " + room);
+            Room createdRoom = roomService.addRoom(room.getRoomId(), room);
+            LOGGER.info("created room: " + createdRoom);
+            return createdRoom;
         } catch (Exception e) {
-            LOGGER.error("wasn't able to add room", e);
+            throw new RuntimeException("wasn't able to add room: " + room, e);
+        }
+    }
+
+    // update the entire room based on whatever was passed in
+    public Room updateRoom(Room room) {
+        try {
+            LOGGER.info("updating room: {}", room);
+            Room updatedRoom = roomService.updateRoom(room.getRoomId(), room);
+            LOGGER.info("updated room: {}", updatedRoom);
+            return updatedRoom;
+        } catch (Exception e) {
+            throw new RuntimeException("wasn't able to update room: " + room, e);
+        }
+    }
+
+    // alternative way of updating room where the caller doesn't need to provide "the room", just the aspects to change
+    // so you can design middle man to have fine tuned endpoints for "updateJustXXX", but internally it will
+    // all look the same... fetch the original Room, set whatever value on it you want, then do the updateRoom() call..
+    // so its just a convenience rather than requiring the middle-man caller to provide everything each time... depends
+    // on how you want to expose middle man operations for "easy of use" or whatever UI you want to sit on top of it...
+    public Room updateRoom(String roomId, boolean lightStatus) {
+        try {
+            LOGGER.info("updating roomId: {}'s lightStatus to: {}", roomId, lightStatus);
+
+            Room room = roomService.getRoom(roomId);
+            if (room == null) {
+                throw new RuntimeException("wasn't able to find room with roomId: " + roomId);
+            }
+
+            room.setLightStatus(lightStatus);
+
+            return updateRoom(room);
+        } catch (Exception e) {
+            throw new RuntimeException("wasn't able to update roomId: " + roomId, e);
         }
     }
 
