@@ -8,6 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class MiddleManService {
 
@@ -15,10 +18,10 @@ public class MiddleManService {
 
     interface RoomService {
         @RequestLine("GET /rooms")
-        String getRooms();
+        List<Room> getRooms();
 
-        @RequestLine("POST /add/{room}")
-        String addRoom(@Param("room") String room);
+        @RequestLine("POST /rooms/{roomID}")
+        String addRoom(@Param("roomID") String roomID);
 
         @RequestLine("PUT /update/{room}")
         String updateRoom(@Param("room") String room);
@@ -29,13 +32,19 @@ public class MiddleManService {
 
     interface MeetingService {
         @RequestLine("GET /start")
-        String getMeetings();
+        List<Meeting> getMeetings();
 
         @RequestLine("POST /add/{meeting}")
         String addMeeting(@Param("meeting") String meeting);
 
-        @RequestLine("PUT /update/{meetingID}")
-        String updateMeeting(@Param("meetingID") String meetingID);
+        @RequestLine("PUT /updateDate/{name}/{date}")
+        String updateDate(@Param("name") String name, @Param("date") String date);
+
+        @RequestLine("PUT /updateTime/{name}/{time}")
+        String updateTime(@Param("name") String name, @Param("time") String time);
+
+        @RequestLine("PUT /updateRoom/{name}/{room}")
+        String updateRoom(@Param("name") String name, @Param("room") String room);
 
         @RequestLine("DELETE /delete/{meetingID}")
         String deleteMeeting(@Param("meetingID") String meetingID);
@@ -60,7 +69,7 @@ public class MiddleManService {
     }
 
     public String doSomethingThatTouchesBothServices() {
-        String rooms = "defaultValueForRooms";
+        List<Room> rooms = new ArrayList<>();
         try {
             rooms = roomService.getRooms();
             LOGGER.info("result from room service: {}", rooms);
@@ -71,7 +80,8 @@ public class MiddleManService {
             // that will be okay to use as a back...
         }
 
-        String meetings = "defaultValueForMeetings";
+        //String meetings = "defaultValueForMeetings";
+        List<Meeting> meetings = new ArrayList<>();
         try {
             meetings = meetingService.getMeetings();
             LOGGER.info("result from meeting service: {}", meetings);
@@ -83,4 +93,21 @@ public class MiddleManService {
         return String.format("rooms: %s, meetings: %s", rooms, meetings);
     }
 
+    public void addRoom(String name) {
+        try {
+            roomService.addRoom(name);
+            LOGGER.info("added room: " + name);
+        } catch (Exception e) {
+            LOGGER.error("wasn't able to add room", e);
+        }
+    }
+
+    public void updateMeetingDate(String name, String date) {
+        try {
+            meetingService.updateDate(name, date);
+        } catch (Exception e) {
+            LOGGER.error("can't complete");
+        }
+
+    }
 }
