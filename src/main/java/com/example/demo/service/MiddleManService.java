@@ -16,7 +16,7 @@ public class MiddleManService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MiddleManService.class);
 
-    interface RoomService {
+    interface RoomServiceApi {
         @RequestLine("GET /rooms")
         List<Room> getRooms();
 
@@ -33,7 +33,7 @@ public class MiddleManService {
         Room deleteRoom(@Param("roomId") String roomId);
     }
 
-    interface MeetingService {
+    interface MeetingServiceApi {
         @RequestLine("GET /start")
         List<Meeting> getMeetings();
 
@@ -53,17 +53,17 @@ public class MiddleManService {
         String deleteMeeting(@Param("meetingID") String meetingID);
     }
 
-    private final RoomService roomService;
-    private final MeetingService meetingService;
+    private final RoomServiceApi roomServiceApi;
+    private final MeetingServiceApi meetingServiceApi;
 
     public MiddleManService() {
-        roomService = Feign.builder()
+        roomServiceApi = Feign.builder()
                 .decoder(new GsonDecoder())
-                .target(RoomService.class, "http://127.0.0.1:8000");
+                .target(RoomServiceApi.class, "http://127.0.0.1:8000");
 
-        meetingService = Feign.builder()
+        meetingServiceApi = Feign.builder()
                 .decoder(new GsonDecoder())
-                .target(MeetingService.class, "http://127.0.0.1:7000");
+                .target(MeetingServiceApi.class, "http://127.0.0.1:7000");
 
         // TODO: later we need to make the URL for both of these to be dynamic such that
         // when we run locally, it will be set to 127.0.0.1:XXX and when things are deployed
@@ -74,7 +74,7 @@ public class MiddleManService {
     public String doSomethingThatTouchesBothServices() {
         List<Room> rooms = new ArrayList<>();
         try {
-            rooms = roomService.getRooms();
+            rooms = roomServiceApi.getRooms();
             LOGGER.info("result from room service: {}", rooms);
         } catch (Exception e) {
             LOGGER.error("error talking to room service", e);
@@ -86,7 +86,7 @@ public class MiddleManService {
         //String meetings = "defaultValueForMeetings";
         List<Meeting> meetings = new ArrayList<>();
         try {
-            meetings = meetingService.getMeetings();
+            meetings = meetingServiceApi.getMeetings();
             LOGGER.info("result from meeting service: {}", meetings);
         } catch (Exception e) {
             LOGGER.error("error talking to meeting service", e);
@@ -96,10 +96,21 @@ public class MiddleManService {
         return String.format("rooms: %s, meetings: %s", rooms, meetings);
     }
 
+    public Room getRoom(String roomId) {
+        try {
+            LOGGER.info("getting room: " + roomId);
+            Room room = roomServiceApi.getRoom(roomId);
+            LOGGER.info("fetched room: " + room);
+            return room;
+        } catch (Exception e) {
+            throw new RuntimeException("wasn't able to get room: " + roomId, e);
+        }
+    }
+
     public Room addRoom(Room room) {
         try {
             LOGGER.info("creating room: " + room);
-            Room createdRoom = roomService.addRoom(room.getRoomId(), room);
+            Room createdRoom = roomServiceApi.addRoom(room.getRoomId(), room);
             LOGGER.info("created room: " + createdRoom);
             return createdRoom;
         } catch (Exception e) {
@@ -111,7 +122,7 @@ public class MiddleManService {
     public Room updateRoom(Room room) {
         try {
             LOGGER.info("updating room: {}", room);
-            Room updatedRoom = roomService.updateRoom(room.getRoomId(), room);
+            Room updatedRoom = roomServiceApi.updateRoom(room.getRoomId(), room);
             LOGGER.info("updated room: {}", updatedRoom);
             return updatedRoom;
         } catch (Exception e) {
@@ -128,7 +139,7 @@ public class MiddleManService {
         try {
             LOGGER.info("updating roomId: {}'s lightStatus to: {}", roomId, lightStatus);
 
-            Room room = roomService.getRoom(roomId);
+            Room room = getRoom(roomId);
             if (room == null) {
                 throw new RuntimeException("wasn't able to find room with roomId: " + roomId);
             }
@@ -143,7 +154,7 @@ public class MiddleManService {
 
     public void updateMeetingDate(String name, String date) {
         try {
-            meetingService.updateDate(name, date);
+            meetingServiceApi.updateDate(name, date);
         } catch (Exception e) {
             LOGGER.error("can't complete");
         }

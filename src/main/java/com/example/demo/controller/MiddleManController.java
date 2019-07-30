@@ -28,6 +28,14 @@ public class MiddleManController {
         return new ResponseEntity<>(something, HttpStatus.OK);
     }
 
+    @GetMapping("/rooms/{roomId}")
+    public ResponseEntity<Room> getRoom(@PathVariable String roomId) {
+        LOGGER.debug("called getRoom, roomId: {}", roomId);
+
+        Room room = middleManService.getRoom(roomId);
+        return new ResponseEntity<>(room, HttpStatus.OK);
+    }
+
     @PostMapping("/rooms/{roomId}")
     public ResponseEntity<Room> addRoom(@PathVariable String roomId, @RequestBody Room room) {
         LOGGER.debug("called addRoom, roomId: {}, room: {}", roomId, room);
@@ -69,4 +77,5 @@ public class MiddleManController {
         middleManService.updateMeetingDate(name, date);
         return new ResponseEntity<>("it worked", HttpStatus.OK);
     }
+
 }
